@@ -1,4 +1,4 @@
-//package org.yournex.nexmail.mailclient
+//package org.yournex.devote.mail
 
 /**
  * User: Milad Rastian <milad inatsign yournex.org>
@@ -19,7 +19,7 @@ import scala.util.matching.Regex
 
 
 
-class MailClient {
+class NEXMailClient {
 
   val supportedProtocol = List("IMAPS")
   val defaultLabel      = "Inbox"
@@ -75,7 +75,7 @@ class MailClient {
 }
 
 //not now
-class MailMSG {
+class NEXMailMSG {
 
 }
 
