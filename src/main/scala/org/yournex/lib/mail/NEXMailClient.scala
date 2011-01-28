@@ -1,4 +1,4 @@
-//package org.yournex.devote.mail
+package org.yournex.lib.mail
 
 /**
  * User: Milad Rastian <milad inatsign yournex.org>
@@ -19,8 +19,8 @@ import scala.util.matching.Regex
 
 
 
-class NEXMailClient {
-
+class NEXMailClient (url: String) {
+  init(url)
   val supportedProtocol = List("IMAPS")
   val defaultLabel      = "Inbox"
 
@@ -29,12 +29,13 @@ class NEXMailClient {
   var selectedPassword: String = ""
   var selectedServer  : String = ""
   var selectedPort    : String = ""
-  var selectedFolder: String   = ""
+  var selectedFolder  : String = ""
+  var labels                   = Map.empty[String, NEXMailLabel]
 
   var store: javax.mail.Store = null
 
   //url : IMAPS://username:password@imap.domain.com:993
-  def getInstance(url: String) = {
+  def init(url: String) = {
     //parse url
     val mailURL = new Regex("""(""" + supportedProtocol.mkString("|") + """):\/\/([A-Za-z0-9\.-]+):([A-Za-z0-9\.-@]+)@([A-Za-z0-9-.]+)([:0-9]*)""")
     url match {
@@ -57,13 +58,14 @@ class NEXMailClient {
     val inbox = store.getFolder(label);
     inbox.open(Folder.READ_ONLY);
     val messages = inbox.getMessages()
+    "End"
   }
 
   def getLabels() ={
-  }
-
-  def getMSG(label: String) ={
-
+    val lbls : Array[javax.mail.Folder] = store.getDefaultFolder().list()
+    for (lbl <- lbls){
+      labels = labels + (lbl.getName -> new NEXMailLabel(lbl))
+    }
   }
 
   def createLabel(label: String) :Boolean = {
@@ -74,8 +76,72 @@ class NEXMailClient {
 
 }
 
+class NEXMailLabel(in: javax.mail.Folder) {
+  var label : javax.mail.Folder = in
+
+  def name = label.getFullName
+
+  def open = {
+    if ( label.isOpen == false)
+      label.open(Folder.READ_WRITE)
+  }
+
+  def create = {
+
+  }
+
+  def delete = {}
+
+  def getMSG(index: Int) = {}
+
+  def getMSGS(index: List[Int] ): List[NEXMailMSG] = {
+    open
+
+    var ret_msg: List[NEXMailMSG] = List()
+    for ( msg <- label.getMessages) {
+      ret_msg = ret_msg ::: List(new NEXMailMSG(msg))
+    }
+
+    ret_msg
+  }
+
+  def getNewMSGCount = {}
+
+  def getUnreadMSGCount = {}
+
+  def getFolder : javax.mail.Folder=  { label }
+
+  def close = {}
+
+  def serach () = {}
+}
+
 //not now
-class NEXMailMSG {
+class NEXMailMSG(in: javax.mail.Message) {
+  def msg : javax.mail.Message =  in
+
+  def getFrom = {}
+
+  def getReplyTo = {}
+
+  def replay = {}
+
+  def getSubject = {}
+
+  def getMSGNum = {}
+
+  def getSentDate = {}
+
+  def getReceivedDate = {}
+
+  def setFlag() = {}
+
+  def search () = {}
+
+  def getMessage : javax.mail.Message =  { msg }
+}
+
+class  NEXMailAddress {
 
 }
 
