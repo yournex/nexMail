@@ -1,0 +1,59 @@
+<html>
+
+    <head>
+        <script src="js/jquery-1.5.js" ></script>
+        <script >
+            var xxx= null;
+            $('document').ready(function(){
+               $('#login_submit').click(function(){
+                    $.get('/api/auth', {username: $('#username').val() ,
+                                        password: $('#password').val() ,
+                                        server  : $('#server').val() ,
+                                        protocol: $('#protocol').val(),
+                                        },
+                            function(data){
+                               // console.log(data.stat);
+                                console.log(data);
+                            }
+                    , 'json');
+
+            })
+
+
+
+                  $('#getLabels_submit').click(function(){
+                    $.get('/api/mail', {action: 'getLabels'},
+                            function(data){
+                                console.log(data.data);
+                                xxx = data.data
+                                for(i=0;i<data.data.length;i++){
+                                    //$('#lables_list').innerHTML+=
+                                }
+                            }
+                    , 'json');
+
+            })
+
+        });
+        </script>
+    </head>
+    <body>
+    <center><h1>Auth</h1></center>
+        username : <input type="text" id="username" value="milad" /><br />
+        password : <input type="text" id="password" value="123" /><br />
+        server   : <input type="text" id="server"   value="voip.loc" /><br />
+        protocol : <input type="text" id="protocol" value="IMAP" /><br />
+        <input type="button" id="login_submit" value="Login" />
+
+    <hr />
+    <center><h1>getLabels</h1></center>
+    get Labels : <input type="action" value="getLabels" /><br />
+    <input type="button" id="getLabels_submit" value="Get Labels">
+    <div id="lables_list">
+
+    </div>
+    <script>
+
+    </script>
+    </body>
+</html>
