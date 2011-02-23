@@ -30,14 +30,21 @@ class NexMail {
 
   def getMessages(label:String, from:Int=1, to:Int=50):List[MailMessage] ={
     val lbl = client.getLabel(label)
+    var chk_fr = from
+    var chk_to = to
+    if(chk_to > lbl.getMessageCount())
+      chk_to = lbl.getMessageCount()
+    if(chk_fr<0)
+      chk_fr=0
+    if(chk_fr > lbl.getMessageCount())
+      chk_fr = lbl.getMessageCount()
 
-    lbl.getMessages(from,to)
+    lbl.getMessages(chk_fr,chk_to)
 
   }
 
   def login(username:String ,password:String, server:String, protocol:String): Boolean = {
     val url = format("%s://%s:%s@%s", protocol, username, password, server)
-    println(url)
     client.init(url)
 
     return true

@@ -196,7 +196,7 @@ class MailLabel(in: javax.mail.Folder) {
   def getFolderObj : javax.mail.Folder=  { folder }
 
   def getMessageCount(force:Boolean=false): Int = {
-    if( force == true || countAll == -1)
+    //if( force == true || countAll == -1)
       countAll = folder.getMessageCount
 
     countAll
@@ -214,7 +214,11 @@ class MailMessage(in: javax.mail.Message) {
   val msg : javax.mail.Message =  in
   val mime :javax.mail.internet.MimeMessage = in.asInstanceOf[javax.mail.internet.MimeMessage]
   //override def toString(): String = { msg.getSubject }
+  val ID = mime.getMessageID
 
+  def getID = {
+    ID
+  }
   def getContent = {
     val body = mime.getContent
     var ret_str = ""
@@ -237,7 +241,7 @@ class MailMessage(in: javax.mail.Message) {
           }else {
               ret_str = mim_mul.getBodyPart(0).getContent.toString
           }
-          println(disposition)
+          //println(disposition)
         }
         //println(mim_mul.getBodyPart(mim_mul.getCount-1).getFileName)
         //ret_str = mim_mul.getBodyPart(mim_mul.getCount-2).getContent.toString
@@ -264,7 +268,7 @@ class MailMessage(in: javax.mail.Message) {
 
   def getFrom :List[MailAddress] = {
     var ret_lst:List[MailAddress] = List()
-    //msg.getFrom map ( addr => addr.toString )
+
     for( frm <- msg.getFrom){
       ret_lst :::=  List(new MailAddress(frm))
 
@@ -272,7 +276,16 @@ class MailMessage(in: javax.mail.Message) {
     ret_lst
   }
 
-  def getReplyTo = { msg.getReplyTo map { addr => addr.toString } }
+  def getReplyTo = {
+
+    var ret_lst:List[MailAddress] = List()
+
+    for( frm <- msg.getReplyTo){
+      ret_lst :::=  List(new MailAddress(frm))
+
+    }
+    ret_lst
+  }
 
   def getSubject = { msg.getSubject }
 
@@ -289,8 +302,29 @@ class MailMessage(in: javax.mail.Message) {
   //TODO: implement below methods
   def getBody():String = {getContent}
   def hasAttached : Boolean = { false }
-  def getTo() = {}
-  def getCC() = {}
+  def getTo() = {
+    var ret_lst:List[MailAddress] = List()
+
+    for( frm <- msg.getAllRecipients){
+      ret_lst :::=  List(new MailAddress(frm))
+
+    }
+
+
+    ret_lst
+
+  }
+
+  def getCC() = {
+    var ret_lst:List[MailAddress] = List()
+    val allcc = mime.getHeader("Cc")
+    if(allcc!=null){
+      for( cc <- allcc){
+        ret_lst :::=  List(new MailAddress(new InternetAddress(cc)))
+      }
+    }
+    println(ret_lst)
+  }
   def getBCC() = {}
   def getHeader(header:String) = {}
   def getHeaders() = {}
@@ -300,7 +334,8 @@ class MailAddress(in:javax.mail.Address){
   val addr = in
   val int_addr = in.asInstanceOf[InternetAddress]
   def getAddress = { int_addr.getAddress }
-  def getPersonal = { int_addr.getPersonal }
+  def getPersonal = { if(int_addr.getPersonal==null) int_addr.getAddress else int_addr.getPersonal }
+  override def toString = { "MailAddress : " + getAddress }
 }
 
 trait MailClientException extends Exception {
