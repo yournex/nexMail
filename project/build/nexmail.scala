@@ -8,7 +8,8 @@ class NEXMail(info: ProjectInfo) extends DefaultWebProject(info) {
       "org.scala-tools.testing" %% "specs" % "1.6.6" % "test->default",
       "com.h2database" % "h2" % "1.2.138",
       "javax.servlet" % "servlet-api" % "2.5" % "compile->default",
-      "javax.mail"    % "mail" % "1.4" % "compile->default"
+      "javax.mail"    % "mail" % "1.4" % "compile->default",
+      "log4j"    % "log4j" % "1.2.8" % "compile->default"
 
     ) ++ super.libraryDependencies
 

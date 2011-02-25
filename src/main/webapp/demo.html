@@ -26,11 +26,6 @@
                     $.get('/api/mail', {action: 'getLabels'},
                             function(data){
                                 console.log(data.data);
-
-                                for(i=0;i<xxx.data.length;i++){
-                                    $('#lables_list').html ( $('#lables_list').html() + xxx.data[0].name+" ("+xxx.data[i].unread+"/"+xxx.data[i].all+")<br /> " );
-
-                                }
                             }
                     , 'json');
 

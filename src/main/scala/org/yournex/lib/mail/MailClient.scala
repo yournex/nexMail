@@ -110,12 +110,19 @@ class MailClient  {
   }
 
   def getLabels() : Map[String, MailLabel] = {
-    if(labels.size == 0 ) {
+    if(0 == 0 ) {
       val lbls : Array[javax.mail.Folder] = store.getDefaultFolder().list()
       for (lbl <- lbls){
+        println("*******")
         //TODO: Handle folders which containt folders
-        if(lbl.getType == javax.mail.Folder.HOLDS_MESSAGES + javax.mail.Folder.HOLDS_FOLDERS)
+        if(lbl.getType == javax.mail.Folder.HOLDS_MESSAGES + javax.mail.Folder.HOLDS_FOLDERS|| lbl.getType == javax.mail.Folder.HOLDS_MESSAGES)
           labels = labels + (lbl.getName -> new MailLabel(lbl))
+
+        if(lbl.getType == javax.mail.Folder.HOLDS_FOLDERS + javax.mail.Folder.HOLDS_MESSAGES || lbl.getType == javax.mail.Folder.HOLDS_FOLDERS ){
+          println(lbl.getType)
+          val k = lbl.list
+            println(k(0).getFullName)
+        }
 
       }
     }
@@ -214,57 +221,66 @@ class MailMessage(in: javax.mail.Message) {
   val msg : javax.mail.Message =  in
   val mime :javax.mail.internet.MimeMessage = in.asInstanceOf[javax.mail.internet.MimeMessage]
   //override def toString(): String = { msg.getSubject }
+  var hasAttached : Boolean =  false
+  var attachedFilesName :List[String] = List()
   val ID = mime.getMessageID
 
   def getID = {
     ID
   }
+
   def getContent = {
     val body = mime.getContent
     var ret_str = ""
 
     body match {
-      case st : String => ret_str = body.toString
-      case mim : javax.mail.internet.MimeMultipart => val mim_mul =  body.asInstanceOf[javax.mail.internet.MimeMultipart]
-        //import javax.mail.internet.MimeUtility
-
-        //println(mim_mul.getCount)
-        //val b2 = mim_mul.getBodyPart(mim_mul.getCount-2).asInstanceOf[javax.mail.internet.MimeBodyPart]
-        //b2.setContentLanguage(Array("UTF-8"))
-        for (i <- 0 to mim_mul.getCount-1 ){
-          val part = mim_mul.getBodyPart(i)
-
-          //  println(mim_mul.getBodyPart(mim_mul.getCount-1).getFileName)
-          var disposition = part.getDisposition
-          if(disposition !=null){
-
-          }else {
-              ret_str = mim_mul.getBodyPart(0).getContent.toString
-          }
-          //println(disposition)
-        }
-        //println(mim_mul.getBodyPart(mim_mul.getCount-1).getFileName)
-        //ret_str = mim_mul.getBodyPart(mim_mul.getCount-2).getContent.toString
-
-
-
-   //     println(mim_mul.getBodyPart(mim_mul.getCount-1).getContent)
-    //    println(mim_mul.getCount)
+      case st : String =>  ret_str = body.toString
+      case mim : javax.mail.internet.MimeMultipart =>
+        ret_str = getText(body.asInstanceOf[javax.mail.internet.MimeMultipart])
     }
-    //println(getSubject)
-    //println( body )  //val k = body.asInstanceOf[javax.mail.internet.MimeMultipart]
-    //println("******************")
-    //println(getSubject)
-
-    //try {
-    //  println(body.asInstanceOf[javax.mail.internet.MimeMultipart].getBodyPart(1))
-    //}catch {
-    //  case _ => println("aaa")
-    //}
 
     ret_str
-
   }
+
+  def getText(multiMess:javax.mail.internet.MimeMultipart, result:String="html"):String = {
+    var text = ""
+    var html =  ""
+    val match_html = """html""".r
+    for(i <- 0 to (multiMess.getCount-1) ){
+      val part = multiMess.getBodyPart(i)
+      if(part.getDisposition == javax.mail.Part.ATTACHMENT){
+        hasAttached = true
+        attachedFilesName :::= List(multiMess.getBodyPart(i).getFileName)
+        //TODO: parse com.sun.mail.util.BASE64DecoderStream
+      }else if (part.getDisposition == javax.mail.Part.INLINE){
+            println("INLINE case in getText MailClient Please check me Message-ID is " + getID)
+      }
+      else{
+        multiMess.getBodyPart(i).getContent match{
+          case s : String=>
+            if(match_html.findFirstIn(multiMess.getBodyPart(i).getContentType) !=None) {
+              html= s
+            }else {
+              text = s
+            }
+          case m : javax.mail.internet.MimeMultipart => getText(m,result)
+          case _ => println("Unknow case in getText MailClient Please check me Message-ID is " + getID)
+        }
+      }
+
+    }
+
+    if(result=="html"){
+      if(html==""){
+        return text
+      }
+      return html
+    }else {
+      return text
+    }
+  }
+
+  def getAttachedFilesName = { attachedFilesName }
 
   def getFrom :List[MailAddress] = {
     var ret_lst:List[MailAddress] = List()
@@ -301,7 +317,6 @@ class MailMessage(in: javax.mail.Message) {
 
   //TODO: implement below methods
   def getBody():String = {getContent}
-  def hasAttached : Boolean = { false }
   def getTo() = {
     var ret_lst:List[MailAddress] = List()
 
@@ -315,7 +330,8 @@ class MailMessage(in: javax.mail.Message) {
 
   }
 
-  def getCC() = {
+  //TODO: Parse this header ex Milad Local <milad@local.loc>
+  def getCC()  :List[MailAddress] = {
     var ret_lst:List[MailAddress] = List()
     val allcc = mime.getHeader("Cc")
     if(allcc!=null){
@@ -323,11 +339,32 @@ class MailMessage(in: javax.mail.Message) {
         ret_lst :::=  List(new MailAddress(new InternetAddress(cc)))
       }
     }
-    println(ret_lst)
+
+    ret_lst
   }
-  def getBCC() = {}
-  def getHeader(header:String) = {}
-  def getHeaders() = {}
+  def getBCC() :List[MailAddress] = {
+    var ret_lst:List[MailAddress] = List()
+
+    val allEnv = mime.getHeader("Envelope-to")
+    if(allEnv!=null){
+      for( cc <- allEnv){
+        ret_lst :::=  List(new MailAddress(new InternetAddress(cc)))
+      }
+    }
+
+    val allBcc = mime.getHeader("Bcc")
+    if(allBcc!=null){
+      for( cc <- allBcc){
+        ret_lst :::=  List(new MailAddress(new InternetAddress(cc)))
+      }
+    }
+
+
+    ret_lst
+  }
+  def getHeader(header:String) = { mime.getHeader(header) }
+  //TODO: this should change
+  def getHeaders() = { mime.getAllHeaderLines }
 }
 
 class MailAddress(in:javax.mail.Address){

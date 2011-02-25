@@ -46,12 +46,25 @@ object APITemplate {
 
       //CC
       ret_str += ", \"cc\":["
-      allCc = msg.getCC
-      if(allCC = )
       for(cc <- msg.getCC){
         ret_str += format(""" {"fullname":"%s","email":"%s"}, """,cc.getPersonal, cc.getAddress)
       }
       ret_str += "]"
+
+      //BCC
+      ret_str += ", \"bcc\":["
+      for(bcc <- msg.getBCC){
+        ret_str += format(""" {"fullname":"%s","email":"%s"}, """,bcc.getPersonal, bcc.getAddress)
+      }
+      ret_str += "]"
+
+      //attached file
+      ret_str += ", \"attachedFiles\":["
+      for(afile <- msg.attachedFilesName){
+        ret_str += format(""" "%s", """,afile)
+      }
+      ret_str += "]"
+
 
       ret_str +="} ],\n"
 
