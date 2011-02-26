@@ -60,7 +60,7 @@ object APITemplate {
 
       //attached file
       ret_str += ", \"attachedFiles\":["
-      for(afile <- msg.attachedFilesName){
+      for(afile <- msg.getAttachedFilesName){
         ret_str += format(""" "%s", """,afile)
       }
       ret_str += "]"

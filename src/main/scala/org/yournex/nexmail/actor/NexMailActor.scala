@@ -40,7 +40,7 @@ object NexMailActor extends Actor      {
 
   def addInstance(mc:MailContainer, sessionId:String): Boolean = {
     //TODO: this if is not working !
-    if( (mailContainer filter { case (key,value) =>  mc.username == value.username } size) >1 ){
+    if( (mailContainer filter { case (key,value) =>  mc.getUsername == value.getUsername } size) >1 ){
       return false
     }
     mailContainer  += (sessionId -> mc)
