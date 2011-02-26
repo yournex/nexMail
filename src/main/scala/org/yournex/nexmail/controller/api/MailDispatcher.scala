@@ -62,9 +62,9 @@ class MailDispatcher extends HttpServlet {
   }
 
   def getLabels(sessionId:String) : String = {
-    val labelmap =  (NexMailActor.getInstance(sessionId).get.getLabels)
+    val labels =  NexMailActor.getInstance(sessionId).get.getLabels
 
-    APITemplate.labels(labelmap)
+    APITemplate.labels(labels)
   }
 }
 

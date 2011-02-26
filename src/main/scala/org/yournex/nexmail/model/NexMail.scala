@@ -17,15 +17,9 @@ class NexMail {
   def server    = client.selectedServer
   def password  = client.selectedPassword
 
-  def getLabels : Map[String,List[Int]] = {
+  def getLabels : Map[String, MailLabel] = {
     labeles = client.getLabels
-
-    var ret_map = Map.empty[String,List[Int]]
-
-    labeles foreach {
-      case (name,mail) => ret_map += (name -> List(mail.getUnreadMessageCount(),mail.getMessageCount()))
-    }
-    ret_map
+    labeles
   }
 
   def getMessages(label:String, from:Int=1, to:Int=50):List[MailMessage] ={

@@ -77,13 +77,30 @@ object APITemplate {
     ret_str
   }
 
-  def labels(labelName: Map[String,List[Int]]):String = {
+  def labels(labels: Map[String, MailLabel]):String = {
     var ret_str ="""{
       "stat" : "ok",
       "data":["""
 
-    for ( (name,num) <- labelName) {
-      ret_str += format(""" {"name": "%s", "unread":"%s", "all":"%s"}, """,name,num(0),num(1))
+    labels foreach {
+      case(name,lbl) => if(lbl.getUnreadMessageCount() == -1 && lbl.getMessageCount() == -1){
+        ret_str += format(""" {"name": "%s", "unread":"-1", "all":"-1","sub_label":[%s]}, """,name,gaugingLabel(lbl.getSubLabels))
+      }else{
+        ret_str += format(""" {"name": "%s", "unread":"%s", "all":"%s","sub_label":[]}, """,name,lbl.getUnreadMessageCount(),lbl.getMessageCount())
+      }
+
+    }
+
+    def gaugingLabel(subs: Map[String, MailLabel]) : String={
+      var ret_str = ""
+      subs foreach{
+        case(name,lbl) =>if(lbl.getUnreadMessageCount() == -1 && lbl.getMessageCount() == -1){
+          ret_str +=format(""" {"name": "%s", "unread":"-1", "all":"-1","sub_label":[%s]}, """,name,gaugingLabel(lbl.getSubLabels))
+        }else{
+          ret_str += format(""" {"name": "%s", "unread":"%s", "all":"%s","sub_label":[]}, """,name,lbl.getUnreadMessageCount(),lbl.getMessageCount())
+        }
+      }
+      return ret_str
     }
 
     ret_str += """ ] }"""

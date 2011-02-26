@@ -101,29 +101,14 @@ class MailClient  {
     }
 
     return  labels(labelName)
-    //val fld: javax.mail.Folder = store.getFolder(labelName)
-    //if(labelStatus != Statics.NOTHING)
-    //  fld.open(labelStatus)
-    //val  lbl = new MailLabel(fld)
-    //return lbl
-
   }
 
   def getLabels() : Map[String, MailLabel] = {
     if(0 == 0 ) {
       val lbls : Array[javax.mail.Folder] = store.getDefaultFolder().list()
       for (lbl <- lbls){
-        println("*******")
-        //TODO: Handle folders which containt folders
-        if(lbl.getType == javax.mail.Folder.HOLDS_MESSAGES + javax.mail.Folder.HOLDS_FOLDERS|| lbl.getType == javax.mail.Folder.HOLDS_MESSAGES)
-          labels = labels + (lbl.getName -> new MailLabel(lbl))
 
-        if(lbl.getType == javax.mail.Folder.HOLDS_FOLDERS + javax.mail.Folder.HOLDS_MESSAGES || lbl.getType == javax.mail.Folder.HOLDS_FOLDERS ){
-          println(lbl.getType)
-          val k = lbl.list
-            println(k(0).getFullName)
-        }
-
+        labels = labels + (lbl.getName -> new MailLabel(lbl))
       }
     }
     labels
@@ -143,7 +128,15 @@ class MailLabel(in: javax.mail.Folder) {
   var countUnread = -1
   var name:String = folder.getFullName
   var messages = Map.empty[Int,MailMessage]
+  val subLabel = for(fld <- folder.list.toList) yield new MailLabel(fld)
 
+  def getSubLabels : Map[String,MailLabel] = {
+    var ret =  Map.empty[String, MailLabel]
+    subLabel foreach {
+      lbl => ret += (lbl.name -> lbl)
+    }
+    ret
+  }
   def open (labelStatus:Int) = {
     if (!folder.isOpen){
       if(labelStatus != Statics.NOTHING)
@@ -195,6 +188,9 @@ class MailLabel(in: javax.mail.Folder) {
   }
 
   def getUnreadMessageCount(force:Boolean=false) :Int  = {
+    //if this folder just can holds folder return -1
+    if(folder.getType == javax.mail.Folder.HOLDS_FOLDERS)
+      return -1
     if(force == true || countUnread == -1 )
       countUnread = folder.getUnreadMessageCount
     countUnread
@@ -203,7 +199,11 @@ class MailLabel(in: javax.mail.Folder) {
   def getFolderObj : javax.mail.Folder=  { folder }
 
   def getMessageCount(force:Boolean=false): Int = {
-    //if( force == true || countAll == -1)
+    //if this folder just can holds folder return -1
+    if(folder.getType == javax.mail.Folder.HOLDS_FOLDERS)
+      return -1
+
+    if( force == true || countAll == -1)
       countAll = folder.getMessageCount
 
     countAll
@@ -216,7 +216,7 @@ class MailLabel(in: javax.mail.Folder) {
   def search () = {}
 }
 
-//not now
+
 class MailMessage(in: javax.mail.Message) {
   val msg : javax.mail.Message =  in
   val mime :javax.mail.internet.MimeMessage = in.asInstanceOf[javax.mail.internet.MimeMessage]
