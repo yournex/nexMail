@@ -68,7 +68,7 @@ class MailClient  {
    */
   def init(url: String) = {
     //parse url
-    val mailURL = new Regex("""(""" + supportedProtocol.mkString("|") + """):\/\/([A-Za-z0-9\.-]+):([A-Za-z0-9\.-@]+)@([A-Za-z0-9-.]+)([:0-9]*)""")
+    val mailURL = new Regex("""(""" + supportedProtocol.mkString("|") + """):\/\/([A-Za-z0-9\.-@]+):([A-Za-z0-9\.-@]+)@([A-Za-z0-9-.]+)([:0-9]*)""")
     url match {
       case mailURL(protocol, username, password, server, port) =>{
         selectedProtocol = protocol
